@@ -182,15 +182,15 @@ extension String {
 
 public class Transaction: Mappable {
     
-    private(set) var transactionId = Int()
+    private(set) var id = Int()
     
-    private(set) var reasonCode = Int()
+    private(set) var code = Int()
     
-    private(set) var cardHolderMessage = String()
+    private(set) var message = String()
     
-    private(set) var paReq = String()
+    private(set) var par = String()
     
-    private(set) var acsUrl = String()
+    private(set) var asc = String()
     
     required public init?(map: Map) {
         
@@ -198,10 +198,10 @@ public class Transaction: Mappable {
     
     // Mappable
     public func mapping(map: Map) {
-        transactionId       <- map["TransactionId"]
-        reasonCode          <- map["ReasonCode"]
-        cardHolderMessage   <- map["CardHolderMessage"]
-        paReq               <- map["PaReq"]
-        acsUrl              <- map["AcsUrl"]
+        id       <- map["TransactionId"]
+        code          <- map["ReasonCode"]
+        message   <- map["CardHolderMessage"]
+        par               <- map["PaReq"]
+        asc              <- map["AcsUrl"]
     }
 }
