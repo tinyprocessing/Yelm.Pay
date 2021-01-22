@@ -6,7 +6,6 @@ final class Yelm_PayTests: XCTestCase {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
-        XCTAssertEqual(Yelm_Pay().text, "Hello, World!")
     }
 
     static var allTests = [
