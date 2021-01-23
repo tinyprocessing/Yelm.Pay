@@ -103,7 +103,7 @@ extension NetworkService {
     
 
     
-    func charge(cardCryptogramPacket: String, cardHolderName: String, amount: Int, completion: @escaping (AFResult<TransactionResponse>) -> Void) {
+    func charge(cardCryptogramPacket: String, cardHolderName: String, amount: Float, completion: @escaping (AFResult<TransactionResponse>) -> Void) {
         
         // Параметры:
         let parameters: Parameters = [
@@ -121,7 +121,7 @@ extension NetworkService {
         makeObjectRequest(request, completion: completion)
     }
     
-    func auth(cardCryptogramPacket: String, cardHolderName: String, amount: Int, completion: @escaping (AFResult<TransactionResponse>) -> Void) {
+    func auth(cardCryptogramPacket: String, cardHolderName: String, amount: Float, completion: @escaping (AFResult<TransactionResponse>) -> Void) {
         
         // Параметры:
         let parameters: Parameters = [

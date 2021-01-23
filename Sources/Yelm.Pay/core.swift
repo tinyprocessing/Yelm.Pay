@@ -123,7 +123,9 @@ public class Core: ObservableObject, Identifiable {
 
 public class ApplePay : NSObject, D3DSDelegate{
     public var id: Int = 0
-
+    private let network = NetworkService()
+    public var price : Float = 0
+    
     static let support: [PKPaymentNetwork] = [
         .amex,
         .masterCard,
@@ -148,6 +150,8 @@ public class ApplePay : NSObject, D3DSDelegate{
         items.append(PKPaymentSummaryItem(label: "Доставка", amount: NSDecimalNumber(value: delivery), type: .final))
         items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: price+delivery), type: .final))
         
+        self.price = price+delivery
+        
         let payment = PKPaymentRequest()
         payment.paymentSummaryItems = items
         payment.merchantIdentifier = merchant
@@ -158,8 +162,41 @@ public class ApplePay : NSObject, D3DSDelegate{
 
         let controller: PKPaymentAuthorizationController = PKPaymentAuthorizationController(paymentRequest: payment)
         controller.delegate = self
+        controller.present { (success) in
+            if (success){
+                DispatchQueue.main.async {
+                    completionHandlerApplePay(true)
+                }
+            }
+            
+            if (!success){
+                DispatchQueue.main.async {
+                    completionHandlerApplePay(false)
+                }
+            }
+        }
 
         
+    }
+    
+    func start_payment(cryptogram: String,  completionHandlerPayment: @escaping (_ success:Bool) -> Void) {
+        network.auth(cardCryptogramPacket: cryptogram, cardHolderName: "", amount: self.price) { (result) in
+            switch result {
+                case .success(let response):
+                    print("payment.network.auth.success")
+                    YelmPay.core.check_response(response: response) { (load, response) in
+                        if (load){
+                            DispatchQueue.main.async {
+                                completionHandlerPayment(true)
+                            }
+                        }
+                    }
+                case .failure(let error):
+                    print("payment.network.auth.error: \(error.localizedDescription)")
+                    completionHandlerPayment(false)
+
+            }
+        }
     }
     
     
@@ -168,7 +205,32 @@ public class ApplePay : NSObject, D3DSDelegate{
 
 extension ApplePay: PKPaymentAuthorizationControllerDelegate{
     
+    public func paymentAuthorizationController(_ controller: PKPaymentAuthorizationController,
+                                               didAuthorizePayment payment: PKPayment,
+                                               handler completion: @escaping (PKPaymentAuthorizationResult) -> Void) {
+        
+        guard let cryptogram = PKPaymentConverter.convert(toString: payment) else {
+            completion(.init(status: .failure, errors: nil))
+            return
+        }
+        
+        start_payment(cryptogram: cryptogram) { (success) in
+            if (success){
+                completion(.init(status: .success, errors: nil))
+                return
+            }
+            
+            if (!success){
+                completion(.init(status: .failure, errors: nil))
+                return
+            }
+        }
+        
+    }
+    
     public func paymentAuthorizationControllerDidFinish(_ controller: PKPaymentAuthorizationController) {
+        
+       
         
     }
     
