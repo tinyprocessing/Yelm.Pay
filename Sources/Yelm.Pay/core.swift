@@ -43,7 +43,7 @@ public class Core: ObservableObject, Identifiable {
         let task = session.dataTask(with: request! as URLRequest) { data, response_cp, error in
             if let http_response = response_cp as? HTTPURLResponse {
                 if (http_response.statusCode == 200) || (http_response.statusCode == 201){
-                    if let responce_data = response_cp, let url = response_cp?.url {
+                    if let responce_data = response_cp, let _ = response_cp?.url {
                         DispatchQueue.main.async {
                             completionHandlerD3DS(true,  responce_data as! HTTPURLResponse)
                         }
@@ -57,7 +57,7 @@ public class Core: ObservableObject, Identifiable {
         
     }
     
-    public func check_response(response: TransactionResponse) {
+    public func check_response(response: TransactionResponse, completionHandlerCheck: @escaping (_ success:Bool, _ data: HTTPURLResponse) -> Void) {
         if (response.success) {
 //            transaction done fine
             print(response.transaction?.message ?? "")
@@ -70,7 +70,9 @@ public class Core: ObservableObject, Identifiable {
                 
                 self.load_d3ds(par: response.transaction!.par, asc: response.transaction!.asc, id: response.transaction!.id) { (load, response) in
                     if (load){
-                        
+                        DispatchQueue.main.async {
+                            completionHandlerCheck(true, response)
+                        }
                     }
                 }
 
@@ -80,12 +82,13 @@ public class Core: ObservableObject, Identifiable {
     }
     
     
-    public func payment(card_number : String, date: String, cvv: String, merchant: String, price: Float) {
+    public func payment(card_number : String, date: String, cvv: String, merchant: String, price: Float, completionHandlerPayment: @escaping (_ success:Bool, _ data: HTTPURLResponse) -> Void) {
         let card = Card()
         let cryptogram = card.makeCryptogramPacket(card_number, andExpDate: date, andCVV: cvv, andMerchantPublicID: merchant)
         
 //        Find any errors in cryptogram
-        guard let packet = cryptogram else {
+        guard cryptogram != nil else {
+            completionHandlerPayment(false, HTTPURLResponse())
             return
         }
         
@@ -93,9 +96,17 @@ public class Core: ObservableObject, Identifiable {
             switch result {
                 case .success(let response):
                     print("payment.network.auth.success")
-                    self.check_response(response: response)
+                    self.check_response(response: response) { (load, response) in
+                        if (load){
+                            DispatchQueue.main.async {
+                                completionHandlerPayment(true, response)
+                            }
+                        }
+                    }
                 case .failure(let error):
                     print("payment.network.auth.error: \(error.localizedDescription)")
+                    completionHandlerPayment(false, HTTPURLResponse())
+
             }
         }
         
