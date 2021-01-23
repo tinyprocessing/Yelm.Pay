@@ -11,12 +11,12 @@ import Alamofire
 import SwiftyJSON
 import Combine
 import SwiftUI
-
+import PassKit
 
 public class Core: ObservableObject, Identifiable {
     public var id: Int = 0
     private let network = NetworkService()
-    
+
     
     public func load_d3ds(par: String, asc: String, id: Int, completionHandlerD3DS: @escaping (_ success:Bool, _ data: HTTPURLResponse) -> Void) {
         
@@ -115,5 +115,61 @@ public class Core: ObservableObject, Identifiable {
         
     }
     
+
+    
+    
+}
+
+
+public class ApplePay : NSObject, D3DSDelegate{
+    public var id: Int = 0
+
+    static let support: [PKPaymentNetwork] = [
+        .amex,
+        .masterCard,
+        .visa
+    ]
+    
+    public func authorizationCompleted(withMD md: String!, andPares paRes: String!) {
+        
+    }
+    
+    public func authorizationFailed(withHtml html: String!) {
+        
+    }
+    
+    
+    
+    
+    public func apple_pay(price: Float, delivery: Float, merchant: String, country: String, currency: String, completionHandlerApplePay: @escaping (_ success:Bool) -> Void){
+        
+        var items: [PKPaymentSummaryItem] = []
+        items.append(PKPaymentSummaryItem(label: "Сумма", amount: NSDecimalNumber(value: price), type: .final))
+        items.append(PKPaymentSummaryItem(label: "Доставка", amount: NSDecimalNumber(value: delivery), type: .final))
+        items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: price+delivery), type: .final))
+        
+        let payment = PKPaymentRequest()
+        payment.paymentSummaryItems = items
+        payment.merchantIdentifier = merchant
+        payment.merchantCapabilities = .capability3DS
+        payment.countryCode = country
+        payment.currencyCode = currency
+        payment.supportedNetworks = ApplePay.support
+
+        let controller: PKPaymentAuthorizationController = PKPaymentAuthorizationController(paymentRequest: payment)
+        controller.delegate = self
+
+        
+    }
+    
+    
+}
+
+
+extension ApplePay: PKPaymentAuthorizationControllerDelegate{
+    
+    public func paymentAuthorizationControllerDidFinish(_ controller: PKPaymentAuthorizationController) {
+        
+    }
     
 }
