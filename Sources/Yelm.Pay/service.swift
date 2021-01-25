@@ -108,7 +108,7 @@ extension NetworkService {
         // Параметры:
         let parameters: Parameters = [
             "amount" : "\(amount)", // Сумма платежа (Обязательный)
-            "currency" : "", // Валюта (Обязательный)
+            "currency" : "RUB", // Валюта (Обязательный)
             "name" : cardHolderName, // Имя держателя карты в латинице (Обязательный для всех платежей кроме Apple Pay и Google Pay)
             "card_cryptogram_packet" : cardCryptogramPacket, // Криптограмма платежных данных (Обязательный)
             "invoice_id" : "", // Номер счета или заказа в вашей системе (Необязательный)
@@ -126,7 +126,7 @@ extension NetworkService {
         // Параметры:
         let parameters: Parameters = [
             "amount" : "\(amount)", // Сумма платежа (Обязательный)
-            "currency" : "", // Валюта (Обязательный)
+            "currency" : "RUB", // Валюта (Обязательный)
             "name" : cardHolderName, // Имя держателя карты в латинице (Обязательный для всех платежей кроме Apple Pay и Google Pay)
             "card_cryptogram_packet" : cardCryptogramPacket, // Криптограмма платежных данных (Обязательный)
             "invoice_id" : "", // Номер счета или заказа в вашей системе (Необязательный)
