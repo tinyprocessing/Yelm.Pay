@@ -10,6 +10,7 @@ import SwiftUI
 import Foundation
 
 
+public let POST_BACK_URL : String = "https://demo.cloudpayments.ru/WebFormPost/GetWebViewData"
 
 public let YelmPay: Pay = Pay()
 

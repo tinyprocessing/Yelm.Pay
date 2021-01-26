@@ -18,7 +18,7 @@ public class Core: ObservableObject, Identifiable {
     private let network = NetworkService()
 
     
-    public func load_d3ds(par: String, asc: String, id: Int, completionHandlerD3DS: @escaping (_ success:Bool, _ data: HTTPURLResponse) -> Void) {
+    public func load_d3ds(par: String, asc: String, id: Int, completionHandlerD3DS: @escaping (_ success:Bool, _ response: HTTPURLResponse, _ data:Data) -> Void) {
         
         var request: NSMutableURLRequest? = nil
         if let url = URL(string: asc) {
@@ -45,7 +45,7 @@ public class Core: ObservableObject, Identifiable {
                 if (http_response.statusCode == 200) || (http_response.statusCode == 201){
                     if let responce_data = response_cp, let _ = response_cp?.url {
                         DispatchQueue.main.async {
-                            completionHandlerD3DS(true,  responce_data as! HTTPURLResponse)
+                            completionHandlerD3DS(true,  responce_data as! HTTPURLResponse, data!)
                         }
                     }
                 }
@@ -53,25 +53,25 @@ public class Core: ObservableObject, Identifiable {
         }
         task.resume()
         
-        completionHandlerD3DS(false, HTTPURLResponse())
+        completionHandlerD3DS(false, HTTPURLResponse(), Data())
         
     }
     
-    public func check_response(response: TransactionResponse, completionHandlerCheck: @escaping (_ success:Bool, _ data: HTTPURLResponse) -> Void) {
+    public func check_response(response: TransactionResponse, completionHandlerCheck: @escaping (_ success:Bool, _ response: HTTPURLResponse, _ data:Data) -> Void) {
         if (response.success) {
 //            transaction done fine
             print(response.transaction?.message ?? "")
         }else {
 //            some error code
-            if (response.message.isEmpty){print("check_response.error");return}
+            if (!response.message.isEmpty){print("check_response.error");return}
             
             if (response.transaction?.par != nil && response.transaction?.asc != nil){
                 if (response.transaction?.asc == ""){ return }
                 
-                self.load_d3ds(par: response.transaction!.par, asc: response.transaction!.asc, id: response.transaction!.id) { (load, response) in
+                self.load_d3ds(par: response.transaction!.par, asc: response.transaction!.asc, id: response.transaction!.id) { (load, response, data)  in
                     if (load){
                         DispatchQueue.main.async {
-                            completionHandlerCheck(true, response)
+                            completionHandlerCheck(true, response, data)
                         }
                     }
                 }
@@ -81,31 +81,61 @@ public class Core: ObservableObject, Identifiable {
         }
     }
     
+    public func check_3d3s(id: String, res: String, completionHandlerCheck: @escaping (_ success:Bool, _ message:String) -> Void){
+        self.network.post3ds(transactionId: id, paRes: res) { (result) in
+            switch result {
+                case .success(let transaction):
+                    print("check_3d3s.post3ds.transaction")
+                    if (transaction.success){
+                        print("check_3d3s.post3ds.transaction.success")
+                        DispatchQueue.main.async {
+                            completionHandlerCheck(true, transaction.transaction!.message)
+                        }
+                    }
+                    
+                    if (!transaction.success){
+                        print("check_3d3s.post3ds.transaction.fail")
+                        DispatchQueue.main.async {
+                            completionHandlerCheck(false, transaction.transaction!.message)
+                        }
+                    }
+                    
+            case .failure(let error):
+                    print("check_3d3s.post3ds.error: \(error.localizedDescription)")
+                    DispatchQueue.main.async {
+                        completionHandlerCheck(false, "ошибка")
+                    }
+
+            
+            }
+        }
+    }
     
-    public func payment(card_number : String, date: String, cvv: String, merchant: String, price: Float, completionHandlerPayment: @escaping (_ success:Bool, _ data: HTTPURLResponse) -> Void) {
+    
+    public func payment(card_number : String, date: String, cvv: String, merchant: String, price: Float, completionHandlerPayment: @escaping (_ success:Bool, _ response: HTTPURLResponse, _ data:Data) -> Void) {
         let card = Card()
         let cryptogram = card.makeCryptogramPacket(card_number, andExpDate: date, andCVV: cvv, andMerchantPublicID: merchant)
         
 //        Find any errors in cryptogram
         guard cryptogram != nil else {
-            completionHandlerPayment(false, HTTPURLResponse())
+            completionHandlerPayment(false, HTTPURLResponse(), Data())
             return
         }
         
-        network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: 0) { (result) in
+        network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: price) { (result) in
             switch result {
                 case .success(let response):
                     print("payment.network.auth.success")
-                    self.check_response(response: response) { (load, response) in
+                    self.check_response(response: response) { (load, response, data) in
                         if (load){
                             DispatchQueue.main.async {
-                                completionHandlerPayment(true, response)
+                                completionHandlerPayment(true, response, data)
                             }
                         }
                     }
                 case .failure(let error):
                     print("payment.network.auth.error: \(error.localizedDescription)")
-                    completionHandlerPayment(false, HTTPURLResponse())
+                    completionHandlerPayment(false, HTTPURLResponse(), Data())
 
             }
         }
@@ -184,7 +214,7 @@ public class ApplePay : NSObject, D3DSDelegate{
             switch result {
                 case .success(let response):
                     print("payment.network.auth.success")
-                    YelmPay.core.check_response(response: response) { (load, response) in
+                    YelmPay.core.check_response(response: response) { (load, response, data)  in
                         if (load){
                             DispatchQueue.main.async {
                                 completionHandlerPayment(true)
