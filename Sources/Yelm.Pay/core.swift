@@ -13,9 +13,14 @@ import Combine
 import SwiftUI
 import PassKit
 
+
+
+
+
 public class Core: ObservableObject, Identifiable {
     public var id: Int = 0
     private let network = NetworkService()
+
 
     
     public func load_d3ds(par: String, asc: String, id: Int, completionHandlerD3DS: @escaping (_ success:Bool, _ response: HTTPURLResponse, _ data:Data) -> Void) {
@@ -61,6 +66,11 @@ public class Core: ObservableObject, Identifiable {
         if (response.success) {
 //            transaction done fine
             print(response.transaction?.message ?? "")
+            
+            DispatchQueue.main.async {
+                completionHandlerCheck(true, HTTPURLResponse(), Data())
+            }
+            
         }else {
 //            some error code
             if (!response.message.isEmpty){print("check_response.error");return}
@@ -151,10 +161,26 @@ public class Core: ObservableObject, Identifiable {
 }
 
 
+
+
+
+public protocol APDelegate: class {
+    func PaymentDone(result: Bool)
+}
+
 public class ApplePay : NSObject, D3DSDelegate{
+    
+    
+    
     public var id: Int = 0
     private let network = NetworkService()
     public var price : Float = 0
+    public var result : Bool = false
+    public var result_key : String = ""
+    
+
+    public var delegate: APDelegate?
+    
     
     static let support: [PKPaymentNetwork] = [
         .amex,
@@ -173,41 +199,7 @@ public class ApplePay : NSObject, D3DSDelegate{
     
     
     
-    public func apple_pay(price: Float, delivery: Float, merchant: String, country: String, currency: String, completionHandlerApplePay: @escaping (_ success:Bool) -> Void){
-        
-        var items: [PKPaymentSummaryItem] = []
-        items.append(PKPaymentSummaryItem(label: "Сумма", amount: NSDecimalNumber(value: price), type: .final))
-        items.append(PKPaymentSummaryItem(label: "Доставка", amount: NSDecimalNumber(value: delivery), type: .final))
-        items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: price+delivery), type: .final))
-        
-        self.price = price+delivery
-        
-        let payment = PKPaymentRequest()
-        payment.paymentSummaryItems = items
-        payment.merchantIdentifier = merchant
-        payment.merchantCapabilities = .capability3DS
-        payment.countryCode = country
-        payment.currencyCode = currency
-        payment.supportedNetworks = ApplePay.support
-
-        let controller: PKPaymentAuthorizationController = PKPaymentAuthorizationController(paymentRequest: payment)
-        controller.delegate = self
-        controller.present { (success) in
-            if (success){
-                DispatchQueue.main.async {
-                    completionHandlerApplePay(true)
-                }
-            }
-            
-            if (!success){
-                DispatchQueue.main.async {
-                    completionHandlerApplePay(false)
-                }
-            }
-        }
-
-        
-    }
+  
     
     func start_payment(cryptogram: String,  completionHandlerPayment: @escaping (_ success:Bool) -> Void) {
         network.auth(cardCryptogramPacket: cryptogram, cardHolderName: "", amount: self.price) { (result) in
@@ -229,29 +221,77 @@ public class ApplePay : NSObject, D3DSDelegate{
         }
     }
     
+  
+    public func apple_pay(price: Float, delivery: Float, merchant: String, country: String, currency: String){
+        
+        var items: [PKPaymentSummaryItem] = []
+        items.append(PKPaymentSummaryItem(label: "Сумма", amount: NSDecimalNumber(value: price), type: .final))
+        items.append(PKPaymentSummaryItem(label: "Доставка", amount: NSDecimalNumber(value: delivery), type: .final))
+        items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: price+delivery), type: .final))
+        
+        self.price = price+delivery
+        
+        let payment = PKPaymentRequest()
+        payment.paymentSummaryItems = items
+        payment.merchantIdentifier = merchant
+        payment.merchantCapabilities = .capability3DS
+        payment.countryCode = country
+        payment.currencyCode = currency
+        payment.supportedNetworks = ApplePay.support
+
+        let controller: PKPaymentAuthorizationController = PKPaymentAuthorizationController(paymentRequest: payment)
+        controller.delegate = self
+        controller.present(completion: nil)
+        
+        
+        
+        
+        
+
+        
+        
+    }
     
 }
 
 
 extension ApplePay: PKPaymentAuthorizationControllerDelegate{
     
+    
+    
     public func paymentAuthorizationController(_ controller: PKPaymentAuthorizationController,
                                                didAuthorizePayment payment: PKPayment,
                                                handler completion: @escaping (PKPaymentAuthorizationResult) -> Void) {
         
         guard let cryptogram = PKPaymentConverter.convert(toString: payment) else {
+            print("ApplePay.cryptogram.main.fail")
             completion(.init(status: .failure, errors: nil))
             return
         }
         
-        start_payment(cryptogram: cryptogram) { (success) in
+        self.start_payment(cryptogram: cryptogram) { (success) in
+            
+            print("ApplePay.start_payment.main")
             if (success){
+                print("ApplePay.start_payment.main.success")
+                self.delegate?.PaymentDone(result: true)
                 completion(.init(status: .success, errors: nil))
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    controller.dismiss(completion: nil)
+                }
+                
                 return
             }
             
             if (!success){
+                print("ApplePay.start_payment.main.fail")
+                self.delegate?.PaymentDone(result: false)
                 completion(.init(status: .failure, errors: nil))
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    controller.dismiss(completion: nil)
+                }
                 return
             }
         }
