@@ -29,10 +29,57 @@ public class Settings: ObservableObject, Identifiable {
     public var d3ds : String = ""
     
     
+    public var position : String = ""
 
+    
+    
     /// Get url to connect rest api
     /// - Parameter method: Method Name - example m-application
     /// - Returns: Ready string
+    
+    func url(method: String, dev: Bool = false) -> String {
+        var url : String = ""
+        if (Locale.current.regionCode != nil && Locale.current.languageCode != nil){
+            
+            if (dev == false){
+                url = self.domain
+            }else{
+                url = self.domain_beta
+            }
+           
+            url += method
+            url += "?version=\(version)&region_code=\(Locale.current.regionCode!)&language_code=\(Locale.current.languageCode!)&platform=\(self.platform)"
+            if (self.position == ""){
+                url += "&lat=0&lon=0"
+            }else{
+                url += ("&"+position)
+            }
+          
+            
+        }else{
+
+            if (dev == false){
+                url = self.domain
+            }else{
+                url = self.domain_beta
+            }
+            
+            url += method
+            url += "?version=\(version)&region_code=US&language_code=en&platform=\(self.platform)"
+            if (self.position == ""){
+                url += "&lat=0&lon=0"
+            }else{
+                url += ("&"+position)
+            }
+            
+        }
+        
+        if (self.debug){
+            print(url)
+        }
+        return url
+    }
+    
     
     func internet() -> Bool {
         var flags = SCNetworkReachabilityFlags()

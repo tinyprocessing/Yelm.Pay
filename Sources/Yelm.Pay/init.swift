@@ -20,6 +20,9 @@ open class Pay: ObservableObject, Identifiable {
     public var core : Core =  Core()
     public var apple_pay : ApplePay = ApplePay()
     
+    public var last_transaction_id : String = ""
+    public var currency : String = ""
+    
     
     public func start(platform : String,
                       auth: String = "cp_auth.php",
