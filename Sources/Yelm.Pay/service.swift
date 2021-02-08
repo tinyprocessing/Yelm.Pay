@@ -32,7 +32,7 @@ public class TransactionResponse: Mappable {
 
 enum HTTPResource: URLConvertible {
     
-    private static let baseURLString = "https://api.yelm.io/payments/"
+    private static let baseURLString = "https://dev.yelm.io/api/mobile/"
     
     case charge
     case auth
@@ -49,12 +49,12 @@ enum HTTPResource: URLConvertible {
             return URL(string: url_new)!
         case .auth:
             
-            let url_new = baseURL.absoluteString + "cp_auth.php?platform=\(YelmPay.settings.platform)"
+            let url_new = baseURL.absoluteString + "cryptogram?platform=\(YelmPay.settings.platform)"
             return URL(string: url_new)!
 
         case .post3ds:
             
-            let url_new = baseURL.absoluteString + "cp_post3ds.php?platform=\(YelmPay.settings.platform)"
+            let url_new = baseURL.absoluteString + "processing?platform=\(YelmPay.settings.platform)"
             return URL(string: url_new)!
             
             
@@ -113,8 +113,8 @@ extension NetworkService {
             "card_cryptogram_packet" : cardCryptogramPacket, // Криптограмма платежных данных (Обязательный)
             "invoice_id" : "", // Номер счета или заказа в вашей системе (Необязательный)
             "description" : "", // Описание оплаты в свободной форме (Необязательный)
-            "account_id" : "", // Идентификатор пользователя в вашей системе (Необязательный)
-            "JsonData" : "" // Любые другие данные, которые будут связаны с транзакцией (Необязательный)
+            "login" : "", // Идентификатор пользователя в вашей системе (Необязательный)
+            "json_data" : "" // Любые другие данные, которые будут связаны с транзакцией (Необязательный)
         ]
         
         let request = HTTPRequest(resource: .charge, method: .post, parameters: parameters)
@@ -131,13 +131,15 @@ extension NetworkService {
             "card_cryptogram_packet" : cardCryptogramPacket, // Криптограмма платежных данных (Обязательный)
             "invoice_id" : "", // Номер счета или заказа в вашей системе (Необязательный)
             "description" : "", // Описание оплаты в свободной форме (Необязательный)
-            "account_id" : "", // Идентификатор пользователя в вашей системе (Необязательный)
+            "login" : "", // Идентификатор пользователя в вашей системе (Необязательный)
             "json_data" : "" // Любые другие данные, которые будут связаны с транзакцией (Необязательный)
         ]
         
         
         
         let request = HTTPRequest(resource: .auth, method: .post, parameters: parameters)
+        
+        print(parameters)
         
         print(try! request.resource.asURL().absoluteString)
         
@@ -148,7 +150,7 @@ extension NetworkService {
         
         let parameters: Parameters = [
             "transaction_id" : transactionId,
-            "pa_res" : paRes
+            "pares" : paRes
         ]
         
         let request = HTTPRequest(resource: .post3ds, method: .post, parameters: parameters)

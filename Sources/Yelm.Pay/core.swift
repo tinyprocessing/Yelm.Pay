@@ -128,13 +128,14 @@ public class Core: ObservableObject, Identifiable {
     public func payment(card_number : String, date: String, cvv: String, merchant: String, price: Float, currency : String = "RUB", completionHandlerPayment: @escaping (_ success:Bool, _ response: HTTPURLResponse, _ data:Data) -> Void) {
         
         
+        if (currency != "RUB"){
         
         AF.request(YelmPay.settings.url(method: "converter", dev: true), method: .post, parameters: ["price" : price, "currency": currency]).responseJSON { (response) in
             if (response.value != nil) {
                 let json = JSON(response.value!)
                 
                 
-                
+                print(json)
                 
                 let card = Card()
                 let cryptogram = card.makeCryptogramPacket(card_number, andExpDate: date, andCVV: cvv, andMerchantPublicID: merchant)
@@ -170,6 +171,41 @@ public class Core: ObservableObject, Identifiable {
         }
         
 
+        }else{
+         
+            
+            
+            
+            let card = Card()
+            let cryptogram = card.makeCryptogramPacket(card_number, andExpDate: date, andCVV: cvv, andMerchantPublicID: merchant)
+            YelmPay.last_transaction_id = ""
+            YelmPay.currency = "RUB"
+            
+    //        Find any errors in cryptogram
+            guard cryptogram != nil else {
+                completionHandlerPayment(false, HTTPURLResponse(), Data())
+                return
+            }
+            
+            self.network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: price) { (result) in
+                switch result {
+                    case .success(let response):
+                        print("payment.network.auth.success")
+                        self.check_response(response: response) { (load, response, data) in
+                            if (load){
+                                DispatchQueue.main.async {
+                                    completionHandlerPayment(true, response, data)
+                                }
+                            }
+                        }
+                    case .failure(let error):
+                        print("payment.network.auth.error: \(error.localizedDescription)")
+                        completionHandlerPayment(false, HTTPURLResponse(), Data())
+
+                }
+            }
+            
+        }
         
         
         
@@ -246,6 +282,8 @@ public class ApplePay : NSObject, D3DSDelegate{
     public func apple_pay(price: Float, delivery: Float, merchant: String, country: String, currency: String){
         
         
+        if (currency != "RUB"){
+            
         
         
         AF.request(YelmPay.settings.url(method: "converter", dev: true), method: .post, parameters: ["price" : (price+delivery), "currency": currency]).responseJSON { (response) in
@@ -276,7 +314,35 @@ public class ApplePay : NSObject, D3DSDelegate{
         }
        
         
-        
+            
+        }else{
+            
+            
+            
+            
+            var items: [PKPaymentSummaryItem] = []
+            items.append(PKPaymentSummaryItem(label: "Сумма", amount: NSDecimalNumber(value: price), type: .final))
+            items.append(PKPaymentSummaryItem(label: "Доставка", amount: NSDecimalNumber(value: delivery), type: .final))
+            items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: price + delivery), type: .final))
+            
+            self.price = price+delivery
+            YelmPay.last_transaction_id = ""
+            YelmPay.currency = "RUB"
+            
+            
+            let payment = PKPaymentRequest()
+            payment.paymentSummaryItems = items
+            payment.merchantIdentifier = merchant
+            payment.merchantCapabilities = .capability3DS
+            payment.countryCode = "RU"
+            payment.currencyCode = "RUB"
+            payment.supportedNetworks = ApplePay.support
+
+            let controller: PKPaymentAuthorizationController = PKPaymentAuthorizationController(paymentRequest: payment)
+            controller.delegate = self
+            controller.present(completion: nil)
+            
+        }
         
         
         
