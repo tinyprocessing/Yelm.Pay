@@ -142,13 +142,19 @@ public class Core: ObservableObject, Identifiable {
                 YelmPay.last_transaction_id = ""
                 YelmPay.currency = "RUB"
                 
+                
+                var new_price = json["price"].float!
+                if (new_price == 0){
+                    new_price = 1.0
+                }
+                
         //        Find any errors in cryptogram
                 guard cryptogram != nil else {
                     completionHandlerPayment(false, HTTPURLResponse(), Data())
                     return
                 }
                 
-                self.network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: json["price"].float!) { (result) in
+                self.network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: new_price) { (result) in
                     switch result {
                         case .success(let response):
                             print("payment.network.auth.success")
@@ -181,13 +187,21 @@ public class Core: ObservableObject, Identifiable {
             YelmPay.last_transaction_id = ""
             YelmPay.currency = "RUB"
             
+            
+            var new_price = price
+            if (new_price == 0){
+                new_price = 1
+            }
+            
+            
+            
     //        Find any errors in cryptogram
             guard cryptogram != nil else {
                 completionHandlerPayment(false, HTTPURLResponse(), Data())
                 return
             }
             
-            self.network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: price) { (result) in
+            self.network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: new_price) { (result) in
                 switch result {
                     case .success(let response):
                         print("payment.network.auth.success")
@@ -259,6 +273,8 @@ public class ApplePay : NSObject, D3DSDelegate{
   
     
     func start_payment(cryptogram: String,  completionHandlerPayment: @escaping (_ success:Bool) -> Void) {
+        
+        
         network.auth(cardCryptogramPacket: cryptogram, cardHolderName: "", amount: self.price) { (result) in
             switch result {
                 case .success(let response):
@@ -290,11 +306,17 @@ public class ApplePay : NSObject, D3DSDelegate{
             if (response.value != nil) {
                 let json = JSON(response.value!)
                 
-                var items: [PKPaymentSummaryItem] = []
-                items.append(PKPaymentSummaryItem(label: "Сумма", amount: NSDecimalNumber(value: json["price"].float!), type: .final))
-                items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: json["price"].float!), type: .final))
                 
-                self.price = price+delivery
+                var new_price = json["price"].float!
+                if (new_price == 0){
+                    new_price = 1.0
+                }
+                
+                var items: [PKPaymentSummaryItem] = []
+                items.append(PKPaymentSummaryItem(label: "Сумма", amount: NSDecimalNumber(value: new_price), type: .final))
+                items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: new_price), type: .final))
+                
+                self.price = new_price
                 YelmPay.last_transaction_id = ""
                 YelmPay.currency = "RUB"
                 
@@ -319,13 +341,17 @@ public class ApplePay : NSObject, D3DSDelegate{
             
             
             
+            var new_price = price
+            if (new_price == 0){
+                new_price = 1.0
+            }
             
             var items: [PKPaymentSummaryItem] = []
-            items.append(PKPaymentSummaryItem(label: "Сумма", amount: NSDecimalNumber(value: price), type: .final))
-            items.append(PKPaymentSummaryItem(label: "Доставка", amount: NSDecimalNumber(value: delivery), type: .final))
-            items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: price + delivery), type: .final))
+            items.append(PKPaymentSummaryItem(label: "Сумма", amount: NSDecimalNumber(value: new_price), type: .final))
+//            items.append(PKPaymentSummaryItem(label: "Доставка", amount: NSDecimalNumber(value: delivery), type: .final))
+            items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: new_price + delivery), type: .final))
             
-            self.price = price+delivery
+            self.price = new_price
             YelmPay.last_transaction_id = ""
             YelmPay.currency = "RUB"
             
