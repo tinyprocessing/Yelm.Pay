@@ -32,7 +32,7 @@ public class TransactionResponse: Mappable {
 
 enum HTTPResource: URLConvertible {
     
-    private static let baseURLString = "https://dev.yelm.io/api/mobile/"
+    private static let baseURLString = "https://rest.yelm.io/api/mobile/"
     
     case charge
     case auth
