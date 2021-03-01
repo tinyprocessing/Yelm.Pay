@@ -9,6 +9,7 @@ import Foundation
 import Alamofire
 import ObjectMapper
 
+
 public class TransactionResponse: Mappable {
     
     private(set) var success = Bool()
@@ -113,7 +114,7 @@ extension NetworkService {
             "card_cryptogram_packet" : cardCryptogramPacket, // Криптограмма платежных данных (Обязательный)
             "invoice_id" : "", // Номер счета или заказа в вашей системе (Необязательный)
             "description" : "", // Описание оплаты в свободной форме (Необязательный)
-            "login" : "", // Идентификатор пользователя в вашей системе (Необязательный)
+            "login" : YelmPay.settings.user, // Идентификатор пользователя в вашей системе (Необязательный)
             "json_data" : "" // Любые другие данные, которые будут связаны с транзакцией (Необязательный)
         ]
         
@@ -131,7 +132,7 @@ extension NetworkService {
             "card_cryptogram_packet" : cardCryptogramPacket, // Криптограмма платежных данных (Обязательный)
             "invoice_id" : "", // Номер счета или заказа в вашей системе (Необязательный)
             "description" : "", // Описание оплаты в свободной форме (Необязательный)
-            "login" : "", // Идентификатор пользователя в вашей системе (Необязательный)
+            "login" : YelmPay.settings.user, // Идентификатор пользователя в вашей системе (Необязательный)
             "json_data" : "" // Любые другие данные, которые будут связаны с транзакцией (Необязательный)
         ]
         

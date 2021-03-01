@@ -29,6 +29,7 @@ public class Settings: ObservableObject, Identifiable {
     public var auth : String = ""
     public var charge : String = ""
     public var d3ds : String = ""
+    public var user : String = ""
     
     
     public var position : String = ""

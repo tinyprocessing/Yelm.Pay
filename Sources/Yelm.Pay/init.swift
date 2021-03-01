@@ -29,6 +29,7 @@ open class Pay: ObservableObject, Identifiable {
                       d3ds : String = "cp_post3ds.php",
                       charge : String = "cp_charge.php",
                       payment_url : String = "https://api.yelm.io/payments/",
+                      user: String = "",
                       completionHandlerStart: @escaping (_ success:Bool) -> Void){
         
         self.settings.platform = platform
@@ -36,7 +37,7 @@ open class Pay: ObservableObject, Identifiable {
         self.settings.charge = charge
         self.settings.d3ds = d3ds
         self.settings.payment_url = payment_url
-        
+        self.settings.user = user
         DispatchQueue.main.async {
             completionHandlerStart(true)
         }
