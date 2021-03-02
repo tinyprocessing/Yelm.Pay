@@ -154,7 +154,7 @@ public class Core: ObservableObject, Identifiable {
                     return
                 }
                 
-                self.network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: new_price) { (result) in
+                self.network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: new_price, type: "card") { (result) in
                     switch result {
                         case .success(let response):
                             print("payment.network.auth.success")
@@ -201,7 +201,7 @@ public class Core: ObservableObject, Identifiable {
                 return
             }
             
-            self.network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: new_price) { (result) in
+            self.network.auth(cardCryptogramPacket: cryptogram!, cardHolderName: "", amount: new_price, type: "card") { (result) in
                 switch result {
                     case .success(let response):
                         print("payment.network.auth.success")
@@ -275,7 +275,7 @@ public class ApplePay : NSObject, D3DSDelegate{
     func start_payment(cryptogram: String,  completionHandlerPayment: @escaping (_ success:Bool) -> Void) {
         
         
-        network.auth(cardCryptogramPacket: cryptogram, cardHolderName: "", amount: self.price) { (result) in
+        network.auth(cardCryptogramPacket: cryptogram, cardHolderName: "", amount: self.price, type: "applepay") { (result) in
             switch result {
                 case .success(let response):
                     print("payment.network.auth.success")
