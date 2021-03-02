@@ -122,7 +122,7 @@ extension NetworkService {
         makeObjectRequest(request, completion: completion)
     }
     
-    func auth(cardCryptogramPacket: String, cardHolderName: String, amount: Float, completion: @escaping (AFResult<TransactionResponse>) -> Void) {
+    func auth(cardCryptogramPacket: String, cardHolderName: String, amount: Float, type: String = "card", completion: @escaping (AFResult<TransactionResponse>) -> Void) {
         
         // Параметры:
         let parameters: Parameters = [
@@ -133,6 +133,7 @@ extension NetworkService {
             "invoice_id" : "", // Номер счета или заказа в вашей системе (Необязательный)
             "description" : "", // Описание оплаты в свободной форме (Необязательный)
             "login" : YelmPay.settings.user, // Идентификатор пользователя в вашей системе (Необязательный)
+            "type" : type, // Идентификатор пользователя в вашей системе (Необязательный)
             "json_data" : "" // Любые другие данные, которые будут связаны с транзакцией (Необязательный)
         ]
         
@@ -151,7 +152,8 @@ extension NetworkService {
         
         let parameters: Parameters = [
             "transaction_id" : transactionId,
-            "pares" : paRes
+            "pares" : paRes,
+            "type" : "card",
         ]
         
         let request = HTTPRequest(resource: .post3ds, method: .post, parameters: parameters)
