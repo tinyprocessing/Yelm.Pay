@@ -325,12 +325,18 @@ public class ApplePay : NSObject, D3DSDelegate{
                 payment.paymentSummaryItems = items
                 payment.merchantIdentifier = merchant
                 payment.merchantCapabilities = .capability3DS
+                payment.billingContact = .init()
+                
                 payment.countryCode = "RU"
                 payment.currencyCode = "RUB"
                 payment.supportedNetworks = ApplePay.support
 
+                payment.requiredShippingContactFields = [.name, .phoneNumber]
+
+                
                 let controller: PKPaymentAuthorizationController = PKPaymentAuthorizationController(paymentRequest: payment)
                 controller.delegate = self
+                
                 controller.present(completion: nil)
             }
         }
@@ -362,6 +368,9 @@ public class ApplePay : NSObject, D3DSDelegate{
             payment.merchantCapabilities = .capability3DS
             payment.countryCode = "RU"
             payment.currencyCode = "RUB"
+            
+            
+            payment.requiredShippingContactFields = [.name, .phoneNumber]
             payment.supportedNetworks = ApplePay.support
 
             let controller: PKPaymentAuthorizationController = PKPaymentAuthorizationController(paymentRequest: payment)
@@ -425,8 +434,8 @@ extension ApplePay: PKPaymentAuthorizationControllerDelegate{
     
     public func paymentAuthorizationControllerDidFinish(_ controller: PKPaymentAuthorizationController) {
         
+        controller.dismiss(completion: nil)
        
-        
     }
     
 }
