@@ -297,6 +297,8 @@ public class ApplePay : NSObject, D3DSDelegate{
   
     public func apple_pay(price: Float, delivery: Float, merchant: String, country: String, currency: String){
         
+        print(currency)
+        print("currency")
         
         if (currency != "RUB"){
             
@@ -314,7 +316,7 @@ public class ApplePay : NSObject, D3DSDelegate{
                 
                 var items: [PKPaymentSummaryItem] = []
                 items.append(PKPaymentSummaryItem(label: "Сумма", amount: NSDecimalNumber(value: new_price), type: .final))
-                items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: new_price), type: .final))
+                items.append(PKPaymentSummaryItem(label: "Енот", amount: NSDecimalNumber(value: new_price), type: .final))
                 
                 self.price = new_price
                 YelmPay.last_transaction_id = ""
@@ -331,7 +333,7 @@ public class ApplePay : NSObject, D3DSDelegate{
                 payment.currencyCode = "RUB"
                 payment.supportedNetworks = ApplePay.support
 
-                payment.requiredShippingContactFields = [.name, .phoneNumber]
+//                payment.requiredShippingContactFields = [.name, .phoneNumber]
 
                 
                 let controller: PKPaymentAuthorizationController = PKPaymentAuthorizationController(paymentRequest: payment)
@@ -355,7 +357,7 @@ public class ApplePay : NSObject, D3DSDelegate{
             var items: [PKPaymentSummaryItem] = []
             items.append(PKPaymentSummaryItem(label: "Сумма", amount: NSDecimalNumber(value: new_price), type: .final))
 //            items.append(PKPaymentSummaryItem(label: "Доставка", amount: NSDecimalNumber(value: delivery), type: .final))
-            items.append(PKPaymentSummaryItem(label: "Всего", amount: NSDecimalNumber(value: new_price + delivery), type: .final))
+            items.append(PKPaymentSummaryItem(label: "Енот", amount: NSDecimalNumber(value: new_price + delivery), type: .final))
             
             self.price = new_price
             YelmPay.last_transaction_id = ""
@@ -370,7 +372,7 @@ public class ApplePay : NSObject, D3DSDelegate{
             payment.currencyCode = "RUB"
             
             
-            payment.requiredShippingContactFields = [.name, .phoneNumber]
+//            payment.requiredShippingContactFields = [.name, .phoneNumber]
             payment.supportedNetworks = ApplePay.support
 
             let controller: PKPaymentAuthorizationController = PKPaymentAuthorizationController(paymentRequest: payment)
