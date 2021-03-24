@@ -12,7 +12,7 @@ import SwiftyJSON
 import SystemConfiguration
 
 
-let version : String = "3.0"
+let version : String = "3.1"
 
 
 public class Settings: ObservableObject, Identifiable {
